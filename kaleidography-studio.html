@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#000005">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="./manifest.json">
+<title>Kaleidography Studio</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap');
+:root{
+  --bg:#000005;--panel:#03030a;
+  --neon:#00aaff;--neon-dim:rgba(0,170,255,0.1);
+  --border:rgba(0,170,255,0.1);--border-hi:rgba(0,170,255,0.4);
+  --text:#ddeeff;--muted:rgba(180,210,255,0.38);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
+  font-family:'Space Mono',monospace;touch-action:none;}
+body{display:flex;flex-direction:column;}
+
+header{
+  height:50px;background:var(--panel);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 0.8rem;gap:0.4rem;flex-shrink:0;z-index:30;
+}
+.logo{font-family:'Orbitron',sans-serif;font-weight:900;font-size:0.65rem;
+  letter-spacing:0.16em;color:var(--neon);text-shadow:0 0 12px rgba(0,170,255,0.5);flex-shrink:0;}
+.sep{width:1px;height:22px;background:var(--border);flex-shrink:0;margin:0 0.2rem;}
+.hbtn{
+  font-family:'Orbitron',sans-serif;font-size:0.4rem;letter-spacing:0.1em;
+  min-height:36px;padding:0 0.65rem;border:1px solid var(--border);border-radius:2px;
+  background:transparent;color:var(--muted);cursor:pointer;transition:all 0.18s;
+  text-transform:uppercase;display:flex;align-items:center;
+}
+.hbtn:active,.hbtn.on{border-color:var(--neon);color:var(--neon);background:var(--neon-dim);}
+.hbtn.go{border-color:rgba(0,255,136,0.25);color:rgba(0,255,136,0.5);}
+.hbtn.go:active{border-color:#00ff88;color:#00ff88;background:rgba(0,255,136,0.06);}
+.hbtn.del{border-color:rgba(255,26,75,0.2);color:rgba(255,26,75,0.4);}
+.hbtn.del:active{border-color:#ff1a4b;color:#ff1a4b;}
+.ml{margin-left:auto;}
+.svg-badge{
+  font-family:'Orbitron',sans-serif;font-size:0.38rem;letter-spacing:0.2em;
+  padding:0.2rem 0.5rem;border:1px solid rgba(0,255,136,0.4);border-radius:1px;
+  color:rgba(0,255,136,0.7);background:rgba(0,255,136,0.05);flex-shrink:0;
+}
+
+.workspace{display:flex;flex:1;overflow:hidden;}
+
+/* LEFT PANEL */
+.lpanel{
+  width:185px;background:var(--panel);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;
+  scrollbar-width:none;
+}
+.lpanel::-webkit-scrollbar{display:none;}
+.psec{border-bottom:1px solid var(--border);padding:0.6rem 0.7rem;}
+.ptitle{font-family:'Orbitron',sans-serif;font-size:0.38rem;letter-spacing:0.25em;
+  color:var(--neon);text-transform:uppercase;margin-bottom:0.5rem;opacity:0.6;}
+.crow{display:flex;flex-direction:column;gap:0.2rem;margin-bottom:0.42rem;}
+.clabel{font-size:0.48rem;color:var(--muted);display:flex;justify-content:space-between;}
+.cval{color:var(--text);font-family:'Orbitron',sans-serif;font-size:0.46rem;}
+input[type=range]{
+  -webkit-appearance:none;width:100%;height:2px;
+  background:rgba(0,170,255,0.1);border-radius:2px;outline:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+  background:var(--neon);cursor:pointer;box-shadow:0 0 8px rgba(0,170,255,0.6);
+}
+.hue-bar{height:5px;border-radius:2px;margin-top:0.2rem;
+  background:linear-gradient(90deg,hsl(0,90%,55%),hsl(60,90%,55%),hsl(120,90%,55%),hsl(180,90%,55%),hsl(240,90%,55%),hsl(300,90%,55%),hsl(360,90%,55%));}
+.colorbar{width:100%;height:22px;border-radius:2px;border:1px solid var(--border-hi);margin-bottom:0.4rem;}
+.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:0.2rem;}
+.sbtn{
+  font-family:'Orbitron',sans-serif;font-size:0.38rem;
+  padding:0.4rem 0.1rem;border:1px solid var(--border);border-radius:2px;
+  background:transparent;color:var(--muted);cursor:pointer;transition:all 0.18s;text-align:center;
+}
+.sbtn.on,.sbtn:active{background:var(--neon-dim);border-color:var(--neon);color:var(--neon);}
+.pbtn{
+  font-family:'Orbitron',sans-serif;font-size:0.38rem;letter-spacing:0.08em;
+  width:100%;padding:0.42rem 0.5rem;border:1px solid var(--border);border-radius:2px;
+  background:transparent;color:var(--muted);cursor:pointer;transition:all 0.18s;
+  text-align:left;text-transform:uppercase;margin-bottom:0.2rem;
+}
+.pbtn:active{border-color:var(--neon);color:var(--neon);background:var(--neon-dim);}
+
+/* CANVAS AREA */
+.carea{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  background:var(--bg);position:relative;overflow:hidden;
+}
+.carea::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(0,170,255,0.02) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,170,255,0.02) 1px,transparent 1px);
+  background-size:44px 44px;
+}
+
+/* The SVG element IS the canvas */
+#svg-canvas{
+  background:#000;
+  border:1px solid rgba(0,170,255,0.08);
+  cursor:crosshair;
+  touch-action:none;
+  position:relative;z-index:1;
+  display:block;
+}
+
+/* Status */
+.statusbar{
+  position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,8,0.85);border:1px solid var(--border);border-radius:2px;
+  padding:0.28rem 0.7rem;font-size:0.42rem;letter-spacing:0.12em;color:var(--muted);
+  text-transform:uppercase;pointer-events:none;z-index:5;display:flex;gap:0.9rem;
+  white-space:nowrap;
+}
+.si span{color:var(--neon);}
+
+/* Path count badge */
+.path-badge{
+  position:absolute;top:10px;right:10px;
+  background:rgba(0,0,8,0.85);border:1px solid var(--border);border-radius:2px;
+  padding:0.25rem 0.55rem;font-family:'Orbitron',sans-serif;font-size:0.4rem;
+  letter-spacing:0.15em;color:var(--muted);pointer-events:none;z-index:5;
+}
+.path-badge span{color:var(--neon);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">KALEIDOGRAPHY STUDIO</div>
+  <div class="svg-badge">SVG NATIVE</div>
+  <div class="sep"></div>
+  <button class="hbtn on" id="btn-draw">✏ Draw</button>
+  <button class="hbtn" id="btn-erase">◻ Erase</button>
+  <div class="sep"></div>
+  <button class="hbtn" id="btn-undo">↩</button>
+  <button class="hbtn" id="btn-redo">↪</button>
+  <div class="ml" style="display:flex;gap:0.4rem;">
+    <button class="hbtn go" id="btn-export-svg">↓ SVG</button>
+    <button class="hbtn go" id="btn-export-png">↓ PNG</button>
+    <button class="hbtn del" id="btn-clear">✕</button>
+  </div>
+</header>
+
+<div class="workspace">
+  <div class="lpanel">
+
+    <div class="psec">
+      <div class="ptitle">Color</div>
+      <canvas class="colorbar" id="colorbar" width="165" height="22"></canvas>
+      <div class="crow">
+        <div class="clabel">Base Hue <span class="cval" id="v-base">180°</span></div>
+        <input type="range" id="s-base" min="0" max="360" value="180">
+        <div class="hue-bar"></div>
+      </div>
+      <div class="crow">
+        <div class="clabel">Saturation <span class="cval" id="v-sat">88%</span></div>
+        <input type="range" id="s-sat" min="20" max="100" value="88">
+      </div>
+      <div class="crow">
+        <div class="clabel">Lightness <span class="cval" id="v-lit">58%</span></div>
+        <input type="range" id="s-lit" min="20" max="88" value="58">
+      </div>
+    </div>
+
+    <div class="psec">
+      <div class="ptitle">Hue Jitter</div>
+      <div class="crow">
+        <div class="clabel">Initial Jitter <span class="cval" id="v-init">45°</span></div>
+        <input type="range" id="s-init" min="0" max="180" value="45">
+      </div>
+      <div class="crow">
+        <div class="clabel">Continuous <span class="cval" id="v-cont">90°</span></div>
+        <input type="range" id="s-cont" min="0" max="360" value="90">
+      </div>
+      <div class="crow">
+        <div class="clabel">Speed <span class="cval" id="v-speed">0.5</span></div>
+        <input type="range" id="s-speed" min="0.05" max="3" value="0.5" step="0.05">
+      </div>
+    </div>
+
+    <div class="psec">
+      <div class="ptitle">Stroke</div>
+      <div class="crow">
+        <div class="clabel">Width <span class="cval" id="v-size">3</span></div>
+        <input type="range" id="s-size" min="0.5" max="28" value="3" step="0.5">
+      </div>
+      <div class="crow">
+        <div class="clabel">Opacity <span class="cval" id="v-opacity">100%</span></div>
+        <input type="range" id="s-opacity" min="5" max="100" value="100">
+      </div>
+      <div class="crow">
+        <div class="clabel">Linecap</div>
+        <div style="display:flex;gap:0.25rem;margin-top:0.1rem;">
+          <button class="sbtn on" data-cap="round" style="grid-column:span 1;">Round</button>
+          <button class="sbtn" data-cap="square">Square</button>
+          <button class="sbtn" data-cap="butt">Flat</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="psec">
+      <div class="ptitle">Symmetry</div>
+      <div class="sgrid">
+        <button class="sbtn" data-sym="1">Off</button>
+        <button class="sbtn on" data-sym="2">×2</button>
+        <button class="sbtn" data-sym="3">×3</button>
+        <button class="sbtn" data-sym="4">×4</button>
+        <button class="sbtn" data-sym="6">×6</button>
+        <button class="sbtn" data-sym="8">×8</button>
+        <button class="sbtn" data-sym="12">×12</button>
+        <button class="sbtn" data-sym="16">×16</button>
+        <button class="sbtn" data-sym="24">×24</button>
+      </div>
+    </div>
+
+    <div class="psec">
+      <div class="ptitle">Presets</div>
+      <button class="pbtn" data-preset="kaleidography">⬡ Kaleidography</button>
+      <button class="pbtn" data-preset="fine">— Fine Line</button>
+      <button class="pbtn" data-preset="bold">▬ Bold Cycle</button>
+      <button class="pbtn" data-preset="scatter">∴ Scatter</button>
+      <button class="pbtn" data-preset="neon">◈ Neon Burn</button>
+      <button class="pbtn" data-preset="myth">✦ Myth</button>
+    </div>
+
+    <div class="psec">
+      <div class="ptitle">Canvas BG</div>
+      <input type="color" id="bg-color" value="#000000"
+        style="width:100%;height:28px;border:1px solid var(--border);border-radius:2px;background:none;cursor:pointer;">
+    </div>
+
+  </div>
+
+  <div class="carea" id="carea">
+    <svg id="svg-canvas" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div class="statusbar">
+      <div class="si">Mode: <span id="st-mode">Draw</span></div>
+      <div class="si">Sym: <span id="st-sym">×2</span></div>
+      <div class="si">Jitter: <span id="st-jitter">90°</span></div>
+      <div class="si">Paths: <span id="st-paths">0</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CORE STATE ────────────────────────────────────────────────────
+const svg = document.getElementById('svg-canvas');
+let S = {
+  mode: 'draw',
+  drawing: false,
+  symmetry: 2,
+  linecap: 'round',
+  strokeDist: 0,
+  initOffset: 0,
+  lastX: 0, lastY: 0,
+  // SVG path tracking
+  currentPaths: [],   // active stroke's path elements
+  currentPoints: [],  // point buffer for current segment
+  allStrokes: [],     // history [{paths:[...], hueData:[...]}]
+  redoStack: [],
+  pathCount: 0,
+};
+
+// ── SIZE SVG ──────────────────────────────────────────────────────
+function sizeSVG() {
+  const area = document.getElementById('carea');
+  const size = Math.min(area.clientWidth - 20, area.clientHeight - 20, 1024);
+  svg.setAttribute('width', size);
+  svg.setAttribute('height', size);
+  svg.setAttribute('viewBox', `0 0 ${size} ${size}`);
+}
+sizeSVG();
+window.addEventListener('resize', sizeSVG);
+
+// ── GET PARAMS ────────────────────────────────────────────────────
+function P() {
+  return {
+    baseHue:  +document.getElementById('s-base').value,
+    initJ:    +document.getElementById('s-init').value,
+    contJ:    +document.getElementById('s-cont').value,
+    speed:    +document.getElementById('s-speed').value,
+    sat:      +document.getElementById('s-sat').value,
+    lit:      +document.getElementById('s-lit').value,
+    size:     +document.getElementById('s-size').value,
+    opacity:  +document.getElementById('s-opacity').value / 100,
+  };
+}
+
+// ── HUE CALCULATION ───────────────────────────────────────────────
+// This is the core — initial jitter randomizes entry point,
+// continuous jitter cycles through degrees per distance unit
+function calcHue(dist) {
+  const p = P();
+  return ((p.baseHue + S.initOffset + dist * p.contJ * p.speed * 0.35) % 360 + 360) % 360;
+}
+
+// ── SVG HELPERS ───────────────────────────────────────────────────
+function makeLine(x1, y1, x2, y2, color, width, opacity, cap) {
+  const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  line.setAttribute('x1', x1.toFixed(2));
+  line.setAttribute('y1', y1.toFixed(2));
+  line.setAttribute('x2', x2.toFixed(2));
+  line.setAttribute('y2', y2.toFixed(2));
+  line.setAttribute('stroke', color);
+  line.setAttribute('stroke-width', width);
+  line.setAttribute('stroke-opacity', opacity);
+  line.setAttribute('stroke-linecap', cap);
+  return line;
+}
+
+function applySymmetry(x1, y1, x2, y2, color, width, opacity, cap) {
+  const cx = +svg.getAttribute('width') / 2;
+  const cy = +svg.getAttribute('height') / 2;
+  const paths = [];
+
+  for (let i = 0; i < S.symmetry; i++) {
+    const angle = (i / S.symmetry) * Math.PI * 2;
+    const cos = Math.cos(angle), sin = Math.sin(angle);
+
+    // Rotate point around center
+    function rot(px, py) {
+      const dx = px - cx, dy = py - cy;
+      return [cx + dx*cos - dy*sin, cy + dx*sin + dy*cos];
+    }
+
+    const [rx1,ry1] = rot(x1,y1);
+    const [rx2,ry2] = rot(x2,y2);
+    const line = makeLine(rx1,ry1,rx2,ry2,color,width,opacity,cap);
+    svg.appendChild(line);
+    paths.push(line);
+
+    // Mirror flip across the rotation axis
+    if (S.symmetry > 1) {
+      function rotMirror(px, py) {
+        const dx = px - cx, dy = py - cy;
+        const mx = dx, my = -dy; // flip y
+        return [cx + mx*cos - my*sin, cy + mx*sin + my*cos];
+      }
+      const [mx1,my1] = rotMirror(x1,y1);
+      const [mx2,my2] = rotMirror(x2,y2);
+      const mline = makeLine(mx1,my1,mx2,my2,color,width,opacity,cap);
+      svg.appendChild(mline);
+      paths.push(mline);
+    }
+  }
+  return paths;
+}
+
+// ── DRAW SEGMENT ──────────────────────────────────────────────────
+function drawSegment(x1, y1, x2, y2) {
+  const dx = x2-x1, dy = y2-y1;
+  S.strokeDist += Math.sqrt(dx*dx + dy*dy);
+
+  const p = P();
+  const hue = calcHue(S.strokeDist);
+  const color = `hsl(${hue.toFixed(1)},${p.sat}%,${p.lit}%)`;
+
+  const newPaths = applySymmetry(x1,y1,x2,y2,color,p.size,p.opacity,S.linecap);
+  S.currentPaths.push(...newPaths);
+  S.pathCount += newPaths.length;
+  document.getElementById('st-paths').textContent = S.pathCount;
+}
+
+// ── ERASE (remove last stroke) ────────────────────────────────────
+function eraseStroke() {
+  if (S.allStrokes.length === 0) return;
+  const last = S.allStrokes.pop();
+  last.paths.forEach(p => p.parentNode && p.parentNode.removeChild(p));
+  S.pathCount -= last.paths.length;
+  if (S.pathCount < 0) S.pathCount = 0;
+  document.getElementById('st-paths').textContent = S.pathCount;
+  S.redoStack.push(last);
+}
+
+// ── UNDO / REDO ───────────────────────────────────────────────────
+document.getElementById('btn-undo').addEventListener('click', eraseStroke);
+
+document.getElementById('btn-redo').addEventListener('click', () => {
+  if (S.redoStack.length === 0) return;
+  const stroke = S.redoStack.pop();
+  stroke.paths.forEach(p => svg.appendChild(p));
+  S.allStrokes.push(stroke);
+  S.pathCount += stroke.paths.length;
+  document.getElementById('st-paths').textContent = S.pathCount;
+});
+
+// ── POINTER EVENTS ────────────────────────────────────────────────
+function getXY(e) {
+  const rect = svg.getBoundingClientRect();
+  const scaleX = +svg.getAttribute('width') / rect.width;
+  const scaleY = +svg.getAttribute('height') / rect.height;
+  const src = e.touches ? e.touches[0] : e;
+  return [
+    (src.clientX - rect.left) * scaleX,
+    (src.clientY - rect.top) * scaleY
+  ];
+}
+
+function startDraw(e) {
+  if (S.mode !== 'draw') return;
+  e.preventDefault();
+  S.drawing = true;
+  S.strokeDist = 0;
+  S.currentPaths = [];
+  S.redoStack = [];
+  const p = P();
+  S.initOffset = (Math.random() * 2 - 1) * p.initJ;
+  [S.lastX, S.lastY] = getXY(e);
+}
+
+function moveDraw(e) {
+  if (!S.drawing || S.mode !== 'draw') return;
+  e.preventDefault();
+  const [x, y] = getXY(e);
+  drawSegment(S.lastX, S.lastY, x, y);
+  S.lastX = x; S.lastY = y;
+}
+
+function endDraw(e) {
+  if (!S.drawing) return;
+  S.drawing = false;
+  if (S.currentPaths.length > 0) {
+    S.allStrokes.push({ paths: [...S.currentPaths] });
+    S.currentPaths = [];
+  }
+}
+
+svg.addEventListener('touchstart', startDraw, {passive:false});
+svg.addEventListener('touchmove', moveDraw, {passive:false});
+svg.addEventListener('touchend', endDraw);
+svg.addEventListener('touchcancel', endDraw);
+svg.addEventListener('mousedown', startDraw);
+svg.addEventListener('mousemove', moveDraw);
+svg.addEventListener('mouseup', endDraw);
+svg.addEventListener('mouseleave', endDraw);
+
+// ── MODE BUTTONS ──────────────────────────────────────────────────
+document.getElementById('btn-draw').addEventListener('click', () => {
+  S.mode = 'draw';
+  document.getElementById('btn-draw').classList.add('on');
+  document.getElementById('btn-erase').classList.remove('on');
+  document.getElementById('st-mode').textContent = 'Draw';
+  svg.style.cursor = 'crosshair';
+});
+
+document.getElementById('btn-erase').addEventListener('click', () => {
+  S.mode = 'erase';
+  document.getElementById('btn-erase').classList.add('on');
+  document.getElementById('btn-draw').classList.remove('on');
+  document.getElementById('st-mode').textContent = 'Erase';
+  svg.style.cursor = 'cell';
+  // In erase mode, tapping removes last stroke
+  svg.addEventListener('click', function eraseClick() {
+    if (S.mode === 'erase') eraseStroke();
+  }, {once:false});
+});
+
+// ── CLEAR ─────────────────────────────────────────────────────────
+document.getElementById('btn-clear').addEventListener('click', () => {
+  // Save all to redo just in case
+  S.redoStack.push(...S.allStrokes);
+  S.allStrokes.forEach(stroke => stroke.paths.forEach(p => p.parentNode && p.parentNode.removeChild(p)));
+  S.allStrokes = [];
+  S.pathCount = 0;
+  document.getElementById('st-paths').textContent = 0;
+});
+
+// ── EXPORT SVG ────────────────────────────────────────────────────
+document.getElementById('btn-export-svg').addEventListener('click', () => {
+  const svgEl = document.getElementById('svg-canvas');
+  const clone = svgEl.cloneNode(true);
+  // Add XML namespace
+  clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  const bgColor = document.getElementById('bg-color').value;
+  // Add background rect
+  const bg = document.createElementNS('http://www.w3.org/2000/svg','rect');
+  bg.setAttribute('width','100%');bg.setAttribute('height','100%');bg.setAttribute('fill',bgColor);
+  clone.insertBefore(bg, clone.firstChild);
+  const svgStr = '<?xml version="1.0" encoding="UTF-8"?>\n' + clone.outerHTML;
+  const blob = new Blob([svgStr], {type:'image/svg+xml'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'kaleidography-' + Date.now() + '.svg';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+// ── EXPORT PNG ────────────────────────────────────────────────────
+document.getElementById('btn-export-png').addEventListener('click', () => {
+  const svgEl = document.getElementById('svg-canvas');
+  const w = +svgEl.getAttribute('width');
+  const h = +svgEl.getAttribute('height');
+  const bgColor = document.getElementById('bg-color').value;
+
+  const clone = svgEl.cloneNode(true);
+  clone.setAttribute('xmlns','http://www.w3.org/2000/svg');
+  const bg = document.createElementNS('http://www.w3.org/2000/svg','rect');
+  bg.setAttribute('width','100%');bg.setAttribute('height','100%');bg.setAttribute('fill',bgColor);
+  clone.insertBefore(bg,clone.firstChild);
+
+  const svgStr = clone.outerHTML;
+  const blob = new Blob([svgStr],{type:'image/svg+xml'});
+  const url = URL.createObjectURL(blob);
+  const img = new Image();
+  img.onload = () => {
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(img,0,0);
+    const a = document.createElement('a');
+    a.download = 'kaleidography-' + Date.now() + '.png';
+    a.href = c.toDataURL('image/png');
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  img.src = url;
+});
+
+// ── SYMMETRY ──────────────────────────────────────────────────────
+document.querySelectorAll('[data-sym]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-sym]').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+    S.symmetry = parseInt(btn.dataset.sym);
+    document.getElementById('st-sym').textContent = S.symmetry === 1 ? 'Off' : '×'+S.symmetry;
+  });
+});
+
+// ── LINECAP ───────────────────────────────────────────────────────
+document.querySelectorAll('[data-cap]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-cap]').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+    S.linecap = btn.dataset.cap;
+  });
+});
+
+// ── BG COLOR ──────────────────────────────────────────────────────
+document.getElementById('bg-color').addEventListener('input', e => {
+  svg.style.background = e.target.value;
+});
+
+// ── SLIDERS ───────────────────────────────────────────────────────
+const sliderMap = [
+  ['s-base','v-base','°'],['s-init','v-init','°'],['s-cont','v-cont','°'],
+  ['s-speed','v-speed',''],['s-sat','v-sat','%'],['s-lit','v-lit','%'],
+  ['s-size','v-size',''],['s-opacity','v-opacity','%'],
+];
+sliderMap.forEach(([sid,vid,unit]) => {
+  const s = document.getElementById(sid);
+  const v = document.getElementById(vid);
+  if(!s||!v) return;
+  s.addEventListener('input', () => {
+    v.textContent = parseFloat(s.value) + unit;
+    if(sid==='s-cont') document.getElementById('st-jitter').textContent = s.value+'°';
+    updateColorBar();
+  });
+});
+
+// ── COLOR BAR PREVIEW ─────────────────────────────────────────────
+function updateColorBar() {
+  const cvs = document.getElementById('colorbar');
+  const ctx = cvs.getContext('2d');
+  const p = P();
+  const grad = ctx.createLinearGradient(0,0,165,0);
+  for(let i=0;i<=12;i++) {
+    const h = (p.baseHue + i*30) % 360;
+    grad.addColorStop(i/12, `hsl(${h},${p.sat}%,${p.lit}%)`);
+  }
+  ctx.fillStyle = grad;
+  ctx.fillRect(0,0,165,22);
+}
+updateColorBar();
+['s-base','s-sat','s-lit'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateColorBar);
+});
+
+// ── PRESETS ───────────────────────────────────────────────────────
+const presets = {
+  kaleidography: {base:180,init:45,cont:90,speed:0.5,sat:88,lit:58,size:2,opacity:100},
+  fine:          {base:220,init:15,cont:40,speed:0.3,sat:90,lit:65,size:0.8,opacity:85},
+  bold:          {base:0,  init:90,cont:180,speed:1.2,sat:100,lit:52,size:7,opacity:90},
+  scatter:       {base:120,init:70,cont:130,speed:0.9,sat:80,lit:60,size:3,opacity:65},
+  neon:          {base:195,init:25,cont:55,speed:0.4,sat:100,lit:68,size:1.5,opacity:92},
+  myth:          {base:270,init:60,cont:110,speed:0.6,sat:85,lit:50,size:2.5,opacity:88},
+};
+
+document.querySelectorAll('[data-preset]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const p = presets[btn.dataset.preset];
+    if(!p) return;
+    document.getElementById('s-base').value=p.base;    document.getElementById('v-base').textContent=p.base+'°';
+    document.getElementById('s-init').value=p.init;    document.getElementById('v-init').textContent=p.init+'°';
+    document.getElementById('s-cont').value=p.cont;    document.getElementById('v-cont').textContent=p.cont+'°';
+    document.getElementById('s-speed').value=p.speed;  document.getElementById('v-speed').textContent=p.speed;
+    document.getElementById('s-sat').value=p.sat;      document.getElementById('v-sat').textContent=p.sat+'%';
+    document.getElementById('s-lit').value=p.lit;      document.getElementById('v-lit').textContent=p.lit+'%';
+    document.getElementById('s-size').value=p.size;    document.getElementById('v-size').textContent=p.size;
+    document.getElementById('s-opacity').value=p.opacity; document.getElementById('v-opacity').textContent=p.opacity+'%';
+    document.getElementById('st-jitter').textContent=p.cont+'°';
+    updateColorBar();
+  });
+// ── SERVICE WORKER ────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(() => console.log('Kaleidography Studio: offline ready'))
+      .catch(e => console.log('SW failed:', e));
+  });
+}
+</script>
+</body>
+</html>

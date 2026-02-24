@@ -1,0 +1,19 @@
+{
+  "name": "Kaleidography Studio",
+  "short_name": "K.Studio",
+  "description": "SVG-native hue jitter drawing studio by Kaleidography",
+  "start_url": "./kaleidography-studio.html",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#000005",
+  "theme_color": "#00aaff",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%23000005'/%3E%3Ccircle cx='256' cy='256' r='220' fill='none' stroke='%2300aaff' stroke-width='8' opacity='0.4'/%3E%3Ccircle cx='256' cy='256' r='160' fill='none' stroke='%2300aaff' stroke-width='6' opacity='0.5'/%3E%3Cg opacity='0.8'%3E%3Cline x1='256' y1='36' x2='256' y2='476' stroke='%2300aaff' stroke-width='3'/%3E%3Cline x1='36' y1='256' x2='476' y2='256' stroke='%2300aaff' stroke-width='3'/%3E%3Cline x1='101' y1='101' x2='411' y2='411' stroke='%2300aaff' stroke-width='2'/%3E%3Cline x1='411' y1='101' x2='101' y2='411' stroke='%2300aaff' stroke-width='2'/%3E%3C/g%3E%3Ccircle cx='256' cy='256' r='30' fill='none' stroke='%2300aaff' stroke-width='5'/%3E%3Ccircle cx='256' cy='256' r='8' fill='%2300aaff'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "graphics", "utilities"]
+}
